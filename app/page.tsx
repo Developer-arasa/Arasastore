@@ -44,7 +44,12 @@ export default function Home() {
       {/* HERO SECTION - Professional Store Vibe */}
       <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
         {/* Solid Gradient Background instead of Image */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2B1B17] via-[#3A151B] to-[#4A0E17]" />
+        {/* Image Background */}
+<div className="absolute inset-0 bg-cover bg-bottom" style={{ backgroundImage: "url('https://kqfaqftlpivwhfdwqrwt.supabase.co/storage/v1/object/public/dll/Parkingspace.webp')" }} />
+
+<div className="absolute inset-0 bg-[#000000]/25" />
+{/* Gradient Overlay (Merah ke Transparan) */}
+<div className="absolute inset-0 bg-[#4A0E17]/80" />
         
         {/* Animated Subtle Pattern */}
         <div className="absolute inset-0 opacity-10">
@@ -134,7 +139,7 @@ export default function Home() {
             className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl group bg-[#E5D3B3]/20 border border-[#E5D3B3]/40"
           >
             {/* Tempat untuk gambar kualitas/toko */}
-            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: "url('')" }} />
+            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: "url('https://kqfaqftlpivwhfdwqrwt.supabase.co/storage/v1/object/public/dll/mAIN.webp')" }} />
             <div className="absolute inset-0 bg-gradient-to-t from-[#2B1B17]/40 via-transparent to-transparent opacity-60" />
             
             <div className="absolute top-6 right-6 bg-[#4A0E17]/90 backdrop-blur-sm text-[#FDFBF7] px-5 py-3 rounded-xl shadow-lg border border-[#E5D3B3]/30">
@@ -234,7 +239,7 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-auto md:h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[800px] md:h-[600px]">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -258,8 +263,8 @@ export default function Home() {
               transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
               className="rounded-3xl overflow-hidden relative group bg-[#E5D3B3]/20 shadow-sm border border-[#E5D3B3]/40"
             >
-              {/* Paste link URL Cafe di sini */}
-              <div className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-800 ease-out" style={{ backgroundImage: "url('')" }} />
+              
+              <div className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-800 ease-out" style={{ backgroundImage: "url('https://kqfaqftlpivwhfdwqrwt.supabase.co/storage/v1/object/public/dll/couple%20space%20copy.webp')" }} />
               <div className="absolute inset-0 bg-gradient-to-t from-[#2B1B17]/40 via-transparent to-transparent opacity-60" />
               <div className="absolute bottom-6 left-6 text-[#FDFBF7]">
                 <p className="text-xs uppercase tracking-widest font-bold">Couple Space</p>
@@ -274,10 +279,10 @@ export default function Home() {
               className="rounded-3xl overflow-hidden relative group bg-[#E5D3B3]/20 shadow-sm border border-[#E5D3B3]/40"
             >
               {/* Paste link URL Relaxation Zone di sini */}
-              <div className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-800 ease-out" style={{ backgroundImage: "url('')" }} />
+              <div className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-800 ease-out" style={{ backgroundImage: "url('https://kqfaqftlpivwhfdwqrwt.supabase.co/storage/v1/object/public/dll/Parkingspace.webp')" }} />
               <div className="absolute inset-0 bg-gradient-to-t from-[#2B1B17]/40 via-transparent to-transparent opacity-60" />
               <div className="absolute bottom-6 left-6 text-[#FDFBF7]">
-                <p className="text-xs uppercase tracking-widest font-bold">Coffe & Tea Space</p>
+                <p className="text-xs uppercase tracking-widest font-bold">Parking Space</p>
               </div>
             </motion.div>
           </div>
