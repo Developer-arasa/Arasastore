@@ -164,7 +164,7 @@ export default function DashboardTLPage() {
           <div className="col-span-2 md:col-span-1 bg-white border border-[#E5D3B3]/60 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm flex flex-col justify-between">
             <div className="flex items-center gap-2 mb-4 text-[#2B1B17]/50">
               <Wallet size={16} />
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Estimasi Omzet</span>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Estimasi Pembayaran Total</span>
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-[#4A0E17]">
               {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(metrics.potentialRevenue)}
