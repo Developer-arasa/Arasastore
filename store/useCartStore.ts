@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type CartItem = {
-  id: number;
+  id: string | number; // refactored logic: support uuid & integer
   name: string;
   price: number;
   qty: number;
@@ -13,8 +13,8 @@ export type CartItem = {
 interface CartState {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number) => void;
-  updateQty: (id: number, qty: number) => void;
+  removeFromCart: (id: string | number) => void;
+  updateQty: (id: string | number, qty: number) => void;
   clearCart: () => void;
 }
 

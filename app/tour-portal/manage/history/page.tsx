@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Playfair_Display } from "next/font/google";
 import { supabase } from "@/lib/supabase";
-import { History as HistoryIcon, Calendar, Users, ShoppingBag, Clock, Bus } from "lucide-react";
+import { History as HistoryIcon, Calendar, Users, ShoppingBag, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function HistoryPage() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +39,7 @@ export default function HistoryPage() {
             )
           )
         `)
+        .neq("status", "active") 
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -89,87 +92,79 @@ export default function HistoryPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {sessions.map((session) => {
-            let totalPassengers = session.tour_orders?.length || 0;
-            let totalItems = 0;
-            let totalRevenue = 0;
+        <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl overflow-hidden shadow-sm">
+          <div className="divide-y divide-[#E5D3B3]/40">
+            {sessions.map((session) => {
+              let totalPassengers = session.tour_orders?.length || 0;
+              let totalItems = 0;
+              let totalRevenue = 0;
 
-            session.tour_orders?.forEach((order: any) => {
-              order.tour_order_items?.forEach((item: any) => {
-                totalItems += item.qty;
-                totalRevenue += (item.qty * item.price_at_checkout);
+              session.tour_orders?.forEach((order: any) => {
+                order.tour_order_items?.forEach((item: any) => {
+                  totalItems += item.qty;
+                  totalRevenue += (item.qty * item.price_at_checkout);
+                });
               });
-            });
 
-            const dateObj = new Date(session.created_at);
-            const dateString = dateObj.toLocaleDateString('id-ID', { 
-              weekday: 'short', 
-              year: 'numeric', 
-              month: 'short', 
-              day: 'numeric' 
-            });
+              const dateObj = new Date(session.created_at);
+              const dateString = dateObj.toLocaleDateString('id-ID', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              });
 
-            return (
-              <div 
-                key={session.id} 
-                className="bg-white border border-[#E5D3B3]/60 p-5 sm:p-6 rounded-2xl hover:shadow-md transition-all flex flex-col h-full relative overflow-hidden"
-              >
-                {/* Pita status (Visual cue) */}
-                <div className={`absolute top-0 left-0 w-1.5 h-full ${session.status === 'active' ? 'bg-[#00AA5B]' : 'bg-[#2B1B17]/20'}`}></div>
-
-                <div className="pl-3">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md ${
-                      session.status === 'active' 
-                      ? 'bg-[#00AA5B]/10 text-[#00AA5B]' 
-                      : 'bg-[#2B1B17]/5 text-[#2B1B17]/50'
-                    }`}>
-                      {session.status === 'active' ? 'Sedang Berjalan' : 'Selesai'}
-                    </span>
-                    <div className="flex items-center gap-1.5 text-xs text-[#2B1B17]/50 font-medium">
-                      <Calendar size={12} /> {dateString}
-                    </div>
-                  </div>
-                  
-                  <h3 className={`${playfair.className} text-xl font-bold text-[#2B1B17] mb-1 truncate`}>
-                    {session.group_name || "Rombongan Tanpa Nama"}
-                  </h3>
-                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#2B1B17]/40 mb-5">
-                    <span>ID: {session.id.substring(0, 8)}</span>
-                    <span className="w-1 h-1 bg-[#E5D3B3] rounded-full"></span>
-                    <span className="flex items-center gap-1"><Clock size={10}/> {session.eta}</span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-[#FDFBF7] p-2.5 rounded-xl border border-[#E5D3B3]/40 text-center">
-                      <Users size={14} className="mx-auto text-[#2B1B17]/40 mb-1" />
-                      <p className="text-sm font-bold text-[#2B1B17]">{totalPassengers}</p>
-                    </div>
-                    <div className="bg-[#FDFBF7] p-2.5 rounded-xl border border-[#E5D3B3]/40 text-center">
-                      <ShoppingBag size={14} className="mx-auto text-[#2B1B17]/40 mb-1" />
-                      <p className="text-sm font-bold text-[#2B1B17]">{totalItems}</p>
-                    </div>
-                    <div className="bg-[#FDFBF7] p-2.5 rounded-xl border border-[#E5D3B3]/40 text-center">
-                      <Bus size={14} className="mx-auto text-[#2B1B17]/40 mb-1" />
-                      <p className="text-xs font-bold text-[#4A0E17] mt-1">
-                        {totalRevenue > 0 ? (totalRevenue / 1000).toFixed(0) + 'K' : '0'}
+              return (
+                <div 
+                  key={session.id} 
+                  // refactored logic: navigasi ke detail saat list diklik
+                  onClick={() => router.push(`/tour-portal/manage/detail/${session.id}`)}
+                  className="p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-[#FDFBF7] active:bg-[#E5D3B3]/10 transition-colors group"
+                >
+                  {/* Info Kiri */}
+                  <div className="flex-1 pr-4">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${session.status === 'active' ? 'bg-[#00AA5B] animate-pulse' : 'bg-[#2B1B17]/30'}`}></span>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-[#2B1B17]/50">
+                        {session.status === 'active' ? 'Sedang Berjalan' : 'Selesai'}
                       </p>
                     </div>
+                    
+                    <h3 className={`${playfair.className} text-base sm:text-lg font-bold text-[#2B1B17] line-clamp-1`}>
+                      {session.group_name || "Rombongan Tanpa Nama"}
+                    </h3>
+                    
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-[#2B1B17]/60">
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} className="text-[#E5D3B3]" /> 
+                        {dateString}
+                      </span>
+                      <span className="w-1 h-1 bg-[#E5D3B3] rounded-full hidden sm:block"></span>
+                      <span className="flex items-center gap-1">
+                        <Users size={12} className="text-[#E5D3B3]" />
+                        {totalPassengers} Org
+                      </span>
+                      <span className="w-1 h-1 bg-[#E5D3B3] rounded-full hidden sm:block"></span>
+                      <span className="flex items-center gap-1">
+                        <ShoppingBag size={12} className="text-[#E5D3B3]" />
+                        {totalItems} Item
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="mt-auto pt-3 border-t border-[#E5D3B3]/30 flex justify-between items-center">
-                    <span className="text-[10px] text-[#2B1B17]/50 font-light">
-                      Total Omzet:
-                    </span>
-                    <span className="text-sm font-bold text-[#4A0E17]">
+                  {/* Omzet & Action Kanan */}
+                  <div className="text-right flex flex-col items-end justify-center gap-1 shrink-0">
+                    <p className="text-sm sm:text-base font-bold text-[#4A0E17]">
                       Rp {totalRevenue.toLocaleString('id-ID')}
-                    </span>
+                    </p>
+                    <div className="text-[#E5D3B3] group-hover:text-[#4A0E17] transition-colors mt-1">
+                      <ChevronRight size={18} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

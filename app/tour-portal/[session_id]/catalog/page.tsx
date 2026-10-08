@@ -29,7 +29,21 @@ export default function TourCatalogPage() {
   const [toast, setToast] = useState<string | null>(null);   
   const toastTimer = useRef<NodeJS.Timeout | null>(null);   
 
-  useEffect(() => {     
+  useEffect(() => {
+    // refactored logic: cegah akses katalog kalau status udah sukses
+    const isDone = localStorage.getItem(`arasa_order_done_${sessionId}`);
+    if (isDone) {
+      router.push(`/tour-portal/${sessionId}/success`);
+      return;
+    }
+
+    setIsMounted(true);
+    const name = localStorage.getItem("arasa_passenger_name");
+    
+    // Kalau belum ngisi nama, tendang ke depan
+    if (!name) {
+      router.push(`/tour-portal/${sessionId}`);
+    }     
     setIsMounted(true);     
 
     // Interceptor: Cek identitas penumpang
@@ -280,9 +294,9 @@ export default function TourCatalogPage() {
       {isMounted && totalItems > 0 && (         
         <motion.div            
           initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }}           
-          className="fixed bottom-6 right-4 sm:right-8 z-50"         
+          // refactored logic: ubah bottom-6 jadi bottom-24 khusus mobile, sm:bottom-8 buat layar gede
+          className="fixed bottom-24 sm:bottom-8 right-4 sm:right-8 z-50"         
         >           
-          {/* REFACTORED LOGIC: Arahkan checkout ke route B2B dinamis */}
           <Link href={`/tour-portal/${sessionId}/checkout`} className="flex items-center gap-3 bg-[#4A0E17] text-[#FDFBF7] px-6 py-4 rounded-full shadow-2xl hover:bg-[#2B1B17] hover:scale-105 transition-all group border border-[#4A0E17]/20">             
             <div className="relative">               
               <ShoppingBag size={20} />               
@@ -293,7 +307,7 @@ export default function TourCatalogPage() {
             <span className="text-sm font-bold uppercase tracking-widest hidden sm:block">Checkout</span>           
           </Link>         
         </motion.div>       
-      )}     
+      )}  
     </div>   
   );
 }

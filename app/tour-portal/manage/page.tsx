@@ -118,7 +118,7 @@ export default function DashboardTLPage() {
         
       if (error) throw error;
       
-      router.push(`/tour-portal/manage/${data.id}`);
+      router.push(`/tour-portal/manage/detail/${data.id}`);
     } catch (err) {
       console.error("Gagal membuat sesi:", err);
       alert("Gagal membuat sesi. Pastikan koneksi aman.");
@@ -201,7 +201,7 @@ export default function DashboardTLPage() {
                 <div 
                   key={session.id} 
                   className="bg-white border border-[#E5D3B3]/60 p-5 sm:p-6 rounded-2xl hover:shadow-xl hover:border-[#4A0E17]/30 transition-all group cursor-pointer flex flex-col h-full"
-                  onClick={() => router.push(`/tour-portal/manage/${session.id}`)}
+                  onClick={() => router.push(`/tour-portal/manage/detail/${session.id}`)}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${session.status === 'active' ? 'bg-[#00AA5B]/10 text-[#00AA5B]' : 'bg-[#2B1B17]/10 text-[#2B1B17]/60'}`}>
