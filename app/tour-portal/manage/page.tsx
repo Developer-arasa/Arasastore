@@ -93,21 +93,29 @@ export default function DashboardTLPage() {
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("tour_token");
+    const name = localStorage.getItem("tour_name") || "Tour Leader";
     
     if (!token) {
       alert("Akses ditolak: Token TL tidak ditemukan di browser. Silakan login normal dari depan.");
       return;
     }
-
+    
     setIsSubmitting(true);
     try {
-      // refactored logic: insert group_name ke database
+      // refactored logic
       const { data, error } = await supabase
         .from("tour_sessions")
-        .insert([{ tl_id: token, group_name: groupName, eta: eta }])
+        .insert([{ 
+          tl_id: token, 
+          group_name: groupName, 
+          eta: eta,
+          tl_name: name,
+          travel_agent: "B2B Agent",
+          status: "active"
+        }])
         .select()
         .single();
-
+        
       if (error) throw error;
       
       router.push(`/tour-portal/manage/${data.id}`);

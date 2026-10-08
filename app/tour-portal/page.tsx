@@ -18,27 +18,29 @@ export default function TourLoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("tour_leaders")
-        .select("id, name, pin_hash")
-        .eq("username", username)
-        .eq("is_active", 1)
-        .single();
+      // refactored logic: ganti pemanggilan select biasa dengan RPC dari Supabase
+      const { data, error } = await supabase.rpc("verify_tour_leader_login", {
+        p_username: username,
+        p_pin: pin
+      });
 
-      if (error || !data) {
-        alert("Username tidak ditemukan atau akun dinonaktifkan.");
+      if (error) {
+        console.error(error);
+        alert("Terjadi kesalahan sistem saat verifikasi.");
         setLoading(false);
         return;
       }
 
-      if (data.pin_hash !== pin) {
-        alert("PIN keamanan tidak valid.");
+      // RPC bakal balikin array kosong kalau username salah, nonaktif, atau PIN nggak match
+      if (!data || data.length === 0) {
+        alert("Username tidak ditemukan, akun nonaktif, atau PIN salah.");
         setLoading(false);
         return;
       }
 
-      localStorage.setItem("tour_token", data.id);
-      localStorage.setItem("tour_name", data.name);
+      const userData = data[0];
+      localStorage.setItem("tour_token", userData.id);
+      localStorage.setItem("tour_name", userData.name);
       
       router.push("/tour-portal/manage");
     } catch (err) {

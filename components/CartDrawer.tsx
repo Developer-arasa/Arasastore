@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Trash2, Plus, Minus, MessageCircle } from "lucide-react";
+import { X, Trash2, Plus, Minus, MessageCircle, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import Image from "next/image";
 import { Playfair_Display } from "next/font/google";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
@@ -15,6 +16,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { cart, removeFromCart, updateQty } = useCartStore();
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter(); // Inisialisasi router
 
   // Mencegah Hydration Mismatch
   useEffect(() => {
@@ -27,22 +29,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const grandTotal = cart.reduce((total, item) => total + (item.price * item.qty), 0);
   const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(grandTotal);
 
-  // Fungsi Generate Teks WA untuk Banyak Barang
-  const handleCheckoutWA = () => {
-    if (cart.length === 0) return;
-
-    let waText = "Halo Admin Arasa, saya mau checkout pesanan berikut:\n\n";
-    
-    cart.forEach((item, index) => {
-      const subtotal = item.price * item.qty;
-      const formattedSub = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(subtotal);
-      waText += `${index + 1}. ${item.name}\n   └ ${item.qty}x — ${formattedSub}\n`;
-    });
-
-    waText += `\n*TOTAL KESELURUHAN: ${formattedTotal}*\n\nMohon informasi ketersediaan dan cara pembayarannya. Terima kasih!`;
-    
-    const waLink = `https://wa.me/628155138385?text=${encodeURIComponent(waText)}`;
-    window.open(waLink, '_blank');
+  // Logic pindah ke halaman checkout & tutup drawer
+  const handleProceedToCheckout = () => {
+    onClose();
+    router.push('/checkout');
   };
 
   return (
@@ -116,10 +106,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <span className={`${playfair.className} text-2xl font-bold text-[#4A0E17]`}>{formattedTotal}</span>
             </div>
             <button 
-              onClick={handleCheckoutWA}
+              onClick={handleProceedToCheckout}
               className="w-full flex items-center justify-center gap-2 bg-[#4A0E17] text-[#FDFBF7] hover:bg-[#2B1B17] px-6 py-4 rounded-full text-sm font-medium uppercase tracking-widest transition-all shadow-lg"
             >
-              <MessageCircle size={18} /> Checkout via WhatsApp
+              Lanjut Checkout <ArrowRight size={18} />
             </button>
           </div>
         )}

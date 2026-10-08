@@ -1,28 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Playfair_Display } from "next/font/google";
 import { ArrowLeft, MessageCircle, ShoppingBag, Plus, Minus, Star, Check } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/store/useCartStore";
-// Koneksi Supabase
 import { supabase } from "@/lib/supabase";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  
   const [qty, setQty] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
-  
-  // State untuk Supabase
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   const { addToCart } = useCartStore();
 
-  // Tarik data spesifik berdasarkan ID (UUID) dari Supabase
   useEffect(() => {
     const fetchProductDetail = async () => {
       if (!params.id) return;
@@ -32,22 +30,18 @@ export default function ProductDetailPage() {
           .from('products')
           .select('*')
           .eq('id', params.id)
-          .single(); // Ambil 1 baris data aja
+          .single();
 
-        if (data && !error) {
-          setProduct(data);
-        }
+        if (data && !error) setProduct(data);
       } catch (error) {
         console.error("Gagal menarik detail produk:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchProductDetail();
   }, [params.id]);
 
-  // UI Skeleton Loading
   if (isLoading) {
     return (
       <div className="bg-[#FDFBF7] min-h-screen py-12">
@@ -65,7 +59,6 @@ export default function ProductDetailPage() {
                 <div className="w-1/3 h-8 bg-[#E5D3B3]/40 rounded mb-2"></div>
                 <div className="w-2/3 h-4 bg-[#E5D3B3]/40 rounded"></div>
               </div>
-              <div className="w-full h-14 bg-[#E5D3B3]/40 rounded-full mt-auto"></div>
             </div>
           </div>
         </div>
@@ -73,7 +66,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  // Kalau ID nggak ada di Database
   if (!product) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#FDFBF7]">
@@ -83,15 +75,8 @@ export default function ProductDetailPage() {
     );
   }
 
-  // Kalkulasi & Formatting
-  const priceNumber = product.price; // Dari Supabase udah integer
-  const subtotal = priceNumber * qty;
+  const priceNumber = product.price;
   const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceNumber);
-  const formattedSubtotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(subtotal);
-
-  const waNumber = "628155138385";
-  const waText = encodeURIComponent(`Halo Admin Arasa, saya mau pesan:\n\nProduk: ${product.name}\nJumlah: ${qty}\nTotal: ${formattedSubtotal}\n\nMohon info ketersediaan dan cara pembayarannya.`);
-  const waLink = `https://wa.me/${waNumber}?text=${waText}`;
 
   const handleAddToCart = () => {
     addToCart({
@@ -99,16 +84,28 @@ export default function ProductDetailPage() {
       name: product.name,
       price: priceNumber,
       qty: qty,
-      image: product.image_url, // Pakai image_url dari database
+      image: product.image_url,
       category: product.category,
     });
     
     setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000); 
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: priceNumber,
+      qty: qty,
+      image: product.image_url,
+      category: product.category,
+    });
+    router.push("/checkout");
   };
 
   return (
-    <div className="bg-[#FDFBF7] min-h-screen py-12">
+    <div className="bg-[#FDFBF7] min-h-screen py-12 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <Link href="/the-collection" className="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-[#2B1B17]/60 hover:text-[#4A0E17] transition-colors mb-10 font-medium">
@@ -116,12 +113,11 @@ export default function ProductDetailPage() {
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          
           <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#E5D3B3]/40 shadow-sm">
             <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#E5D3B3]/20">
               <div 
-                className="absolute inset-0 bg-cover bg-center" 
-                style={{ backgroundImage: `url('${product.image_url}')` }} 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url('${product.image_url}')` }}
               />
             </div>
           </div>
@@ -166,17 +162,14 @@ export default function ProductDetailPage() {
               >
                 {isAdded ? <><Check size={18} /> Dimasukkan</> : <><ShoppingBag size={18} /> Masukkan Keranjang</>}
               </button>
-
-              <a 
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
+              
+              <button 
+                onClick={handleBuyNow}
                 className="flex-1 flex items-center justify-center gap-2 bg-[#4A0E17] text-[#FDFBF7] hover:bg-[#2B1B17] px-6 py-4 rounded-full text-sm font-medium uppercase tracking-widest transition-all shadow-lg"
               >
-                <MessageCircle size={18} /> Beli Sekarang
-              </a>
+                <MessageCircle size={18} className="hidden" /> Beli Sekarang
+              </button>
             </div>
-
           </div>
         </div>
       </div>
