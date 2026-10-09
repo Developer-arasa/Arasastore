@@ -112,7 +112,7 @@ export default function SessionDetailPage() {
       if (error) throw error;
 
       const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A*Estimasi Tiba (ETA):* ${session?.eta}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A*Estimasi Tagihan:* Rp ${metrics.totalRevenue.toLocaleString('id-ID')}%0A%0AMohon disiapkan. Terima kasih!`;     
-      const waUrl = `https://wa.me/6281234567890?text=${text}`;      
+      const waUrl = `https://wa.me/628155138385?text=${text}`;      
       window.open(waUrl, '_blank');   
       
       fetchSessionData();
@@ -247,7 +247,7 @@ export default function SessionDetailPage() {
         <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl p-5 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">         
           <div>           
             <h2 className="text-sm font-bold uppercase tracking-widest text-[#2B1B17] mb-1">             
-              Magic Link Penumpang           
+              Copy Link sesi          
             </h2>           
             <p className="text-xs text-[#2B1B17]/60 font-light">             
               Bagikan link ini ke grup WhatsApp agar rombongan bisa memesan mandiri.           

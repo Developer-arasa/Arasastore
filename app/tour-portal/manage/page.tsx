@@ -92,41 +92,36 @@ export default function DashboardTLPage() {
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("tour_token");
-    const name = localStorage.getItem("tour_name") || "Tour Leader";
-    
-    if (!token) {
-      alert("Akses ditolak: Token TL tidak ditemukan di browser. Silakan login normal dari depan.");
-      return;
-    }
+    if (!groupName) return alert("Nama rombongan wajib diisi!");
     
     setIsSubmitting(true);
     try {
-      // refactored logic
+      const token = localStorage.getItem("tour_token");
+      
+      // refactored logic: insert tanpa ETA (di-hardcode strip)
       const { data, error } = await supabase
         .from("tour_sessions")
-        .insert([{ 
-          tl_id: token, 
-          group_name: groupName, 
-          eta: eta,
-          tl_name: name,
-          travel_agent: "B2B Agent",
-          status: "active"
+        .insert([{
+          group_name: groupName,
+          eta: "-", // Bypass kolom DB
+          status: "active",
+          tl_id: token || null
         }])
         .select()
         .single();
-        
+
       if (error) throw error;
       
-      router.push(`/tour-portal/manage/detail/${data.id}`);
+      setGroupName("");
+      setIsModalOpen(false); // Tutup modal
+      const currentToken = localStorage.getItem("tour_token");
+      fetchDashboardData(currentToken); // Refresh data beranda
+      
     } catch (err) {
-      console.error("Gagal membuat sesi:", err);
-      alert("Gagal membuat sesi. Pastikan koneksi aman.");
+      console.error("Gagal buat sesi:", err);
+      alert("Gagal membuat sesi baru. Cek koneksi.");
     } finally {
       setIsSubmitting(false);
-      setIsModalOpen(false);
-      setGroupName("");
-      setEta("");
     }
   };
 
@@ -259,27 +254,10 @@ export default function DashboardTLPage() {
                   type="text"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Contoh: Rombongan Tapakswaka"
+                  placeholder="Contoh:  Arasa Tour ke Bali"
                   required
                   className="w-full px-5 py-3.5 rounded-xl border border-[#E5D3B3]/80 outline-none focus:border-[#4A0E17] focus:ring-1 focus:ring-[#4A0E17] transition-all bg-[#FDFBF7]/50 text-sm"
                 />
-              </div>
-
-              <div className="mb-8">
-                <label className="block text-xs font-bold uppercase tracking-widest text-[#2B1B17] mb-2">
-                  Estimasi Kedatangan (ETA)
-                </label>
-                <input
-                  type="text"
-                  value={eta}
-                  onChange={(e) => setEta(e.target.value)}
-                  placeholder="Contoh: 14:30 WIB"
-                  required
-                  className="w-full px-5 py-3.5 rounded-xl border border-[#E5D3B3]/80 outline-none focus:border-[#4A0E17] focus:ring-1 focus:ring-[#4A0E17] transition-all bg-[#FDFBF7]/50 text-sm"
-                />
-                <p className="text-[10px] text-[#2B1B17]/50 mt-2 font-light leading-relaxed">
-                  Berikan perkiraan waktu bus sampai di toko agar kasir bisa bersiap.
-                </p>
               </div>
 
               <div className="flex gap-3">
