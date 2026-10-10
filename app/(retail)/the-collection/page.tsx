@@ -33,6 +33,7 @@ export default function TheCollectionPage() {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('hide', false)
           .order('created_at', { ascending: true });
 
         if (data && !error) {
