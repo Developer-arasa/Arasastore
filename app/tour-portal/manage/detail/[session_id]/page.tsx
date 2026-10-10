@@ -118,7 +118,8 @@ export default function SessionDetailPage() {
 
       if (error) throw error;
 
-      const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A*Estimasi Tiba (ETA):* ${session?.eta}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A*Estimasi Tagihan:* Rp ${metrics.totalRevenue.toLocaleString('id-ID')}%0A%0AMohon disiapkan. Terima kasih!`;     
+      const agencyName = localStorage.getItem("tour_agency") || "Tidak tersedia";
+      const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Biro:* ${agencyName}%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A*Estimasi Tagihan:* Rp ${metrics.totalRevenue.toLocaleString('id-ID')}%0A%0AMohon disiapkan. Terima kasih!`;     
       const waUrl = `https://wa.me/628155138385?text=${text}`;      
       window.open(waUrl, '_blank');   
       
