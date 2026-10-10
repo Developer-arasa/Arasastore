@@ -19,6 +19,7 @@ export default function PassengerEntryPage() {
   const [name, setName] = useState("");
   const [bus, setBus] = useState("");
   const [seat, setSeat] = useState("");
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     const initPage = async () => {
@@ -58,11 +59,15 @@ export default function PassengerEntryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !bus || !seat) return alert("Harap lengkapi semua data!");
+    if (!name.trim() || !bus.trim() || !seat.trim()) {
+      setFormError("Lengkapi nama, nomor bus, dan nomor kursi terlebih dahulu.");
+      return;
+    }
     
     localStorage.setItem("arasa_passenger_name", name);
     localStorage.setItem("arasa_bus_number", bus);
     localStorage.setItem("arasa_seat_number", seat);
+    localStorage.setItem("arasa_tour_session", sessionId);
     
     router.push(`/tour-portal/${sessionId}/catalog`);
   };
@@ -93,14 +98,14 @@ export default function PassengerEntryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-sm border border-[#E5D3B3]/40 overflow-hidden">
-        <div className="bg-[#4A0E17] p-8 text-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#f7f1e8] flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_24px_80px_-32px_rgba(74,14,23,.4)] border border-[#eadbc9] overflow-hidden">
+        <div className="bg-[#4A0E17] p-7 sm:p-9 text-left relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <h1 className={`${playfair.className} text-2xl font-bold text-[#FDFBF7] relative z-10`}>
             Arasa In-Bus Delivery
           </h1>
-          <p className="text-xs text-[#FDFBF7]/70 mt-2 relative z-10">Silakan masukkan data diri Anda</p>
+          <p className="text-sm text-[#FDFBF7]/70 mt-2 relative z-10">Siapkan pesananmu, kami antar langsung ke bus.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
@@ -112,7 +117,7 @@ export default function PassengerEntryPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Bayu Agus"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E5D3B3] outline-none focus:border-[#4A0E17] text-sm text-[#2B1B17] bg-[#FDFBF7]/50"
+                 className="w-full rounded-2xl border border-[#eadbc9] bg-[#fcfaf7] py-3.5 pl-10 pr-4 text-sm outline-none transition focus:border-[#a96d4d] focus:ring-4 focus:ring-[#a96d4d]/10"
                 required
               />
               <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40" />
@@ -157,6 +162,7 @@ export default function PassengerEntryPage() {
             Mulai Belanja <ArrowRight size={16} />
           </button>
         </form>
+        {formError && <p role="alert" className="px-6 pb-6 text-center text-xs font-medium text-red-700">{formError}</p>}
       </div>
     </div>
   );

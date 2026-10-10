@@ -19,6 +19,7 @@ export default function DashboardTLPage() {
   const [groupName, setGroupName] = useState("");
   const [eta, setEta] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   
   const router = useRouter();
 
@@ -26,11 +27,16 @@ export default function DashboardTLPage() {
     const name = localStorage.getItem("tour_name");
     const token = localStorage.getItem("tour_token");
     
-    setTlName(name || "Dev Mode (Bypass)");
+    if (!token || !name) {
+      router.replace("/tour-portal");
+      return;
+    }
+
+    setTlName(name);
     fetchDashboardData(token);
   }, [router]);
 
-  const fetchDashboardData = async (tlId: string | null) => {
+  const fetchDashboardData = async (tlId: string) => {
     try {
       let query = supabase
         .from("tour_sessions")
@@ -46,9 +52,7 @@ export default function DashboardTLPage() {
         `)
         .order("created_at", { ascending: false });
 
-      if (tlId) {
-        query = query.eq("tl_id", tlId);
-      }
+      query = query.eq("tl_id", tlId);
 
       const { data, error } = await query;
 
@@ -95,17 +99,27 @@ export default function DashboardTLPage() {
     if (!groupName) return alert("Nama rombongan wajib diisi!");
     
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       const token = localStorage.getItem("tour_token");
+      const tlName = localStorage.getItem("tour_name");
+      const travelAgent = localStorage.getItem("tour_agency");
+
+      if (!token || !tlName || !travelAgent) {
+        router.replace("/tour-portal");
+        return;
+      }
       
       // refactored logic: insert tanpa ETA (di-hardcode strip)
       const { data, error } = await supabase
         .from("tour_sessions")
         .insert([{
-          group_name: groupName,
-          eta: "-", // Bypass kolom DB
+          group_name: groupName.trim(),
+          tl_name: tlName,
+          travel_agent: travelAgent,
+          eta: null,
           status: "active",
-          tl_id: token || null
+          tl_id: token
         }])
         .select()
         .single();
@@ -114,12 +128,11 @@ export default function DashboardTLPage() {
       
       setGroupName("");
       setIsModalOpen(false); // Tutup modal
-      const currentToken = localStorage.getItem("tour_token");
-      fetchDashboardData(currentToken); // Refresh data beranda
+      fetchDashboardData(token); // Refresh data beranda
       
     } catch (err) {
       console.error("Gagal buat sesi:", err);
-      alert("Gagal membuat sesi baru. Cek koneksi.");
+      setErrorMessage("Sesi baru belum berhasil dibuat. Periksa koneksi lalu coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,6 +158,7 @@ export default function DashboardTLPage() {
           Buat Sesi Baru
         </button>
       </div>
+      {errorMessage && <p role="alert" className="mb-6 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{errorMessage}</p>}
 
       {!loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-10">

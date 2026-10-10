@@ -21,6 +21,7 @@ export default function NavbarTL() {
   const handleLogout = () => {
     localStorage.removeItem("tour_token");
     localStorage.removeItem("tour_name");
+    localStorage.removeItem("tour_agency");
     router.push("/tour-portal");
   };
 
@@ -31,41 +32,39 @@ export default function NavbarTL() {
 
   return (
     <>
-      <nav className="hidden sm:block sticky top-0 z-50 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#E5D3B3]/40 shadow-sm">
+      <nav className="sticky top-0 z-50 hidden border-b border-[#eadbc9] bg-[#f7f1e8]/90 backdrop-blur-xl sm:block">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex h-[4.5rem] items-center justify-between">
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-3 pr-6 border-r border-[#E5D3B3]/40">
-                <span className="bg-[#4A0E17] text-[#FDFBF7] text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-widest">
-                  B2B
-                </span>
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#4A0E17] text-xs font-bold tracking-widest text-white">A</span>
                 <span className={`${playfair.className} text-2xl font-bold text-[#4A0E17]`}>
-                  Arasa Tour
+                  Arasa <span className="text-[#a96d4d]">Tour</span>
                 </span>
               </div>
               
               <div className="flex items-center gap-6">
-                <Link href="/tour-portal/manage" className={`text-sm font-bold uppercase tracking-widest transition-colors ${isDashboard ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40 hover:text-[#4A0E17]'}`}>
+                <Link href="/tour-portal/manage" className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${isDashboard ? 'bg-[#4A0E17] text-white' : 'text-[#2B1B17]/50 hover:bg-white hover:text-[#4A0E17]'}`}>
                   Dashboard
                 </Link>
-                <Link href="/tour-portal/manage/detail" className={`text-sm font-bold uppercase tracking-widest transition-colors ${isDetail ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40 hover:text-[#4A0E17]'}`}>
+                <Link href="/tour-portal/manage/detail" className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${isDetail ? 'bg-[#4A0E17] text-white' : 'text-[#2B1B17]/50 hover:bg-white hover:text-[#4A0E17]'}`}>
                   Detail Order
                 </Link>
-                <Link href="/tour-portal/manage/history" className={`text-sm font-bold uppercase tracking-widest transition-colors ${isHistory ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40 hover:text-[#4A0E17]'}`}>
+                <Link href="/tour-portal/manage/history" className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${isHistory ? 'bg-[#4A0E17] text-white' : 'text-[#2B1B17]/50 hover:bg-white hover:text-[#4A0E17]'}`}>
                   Riwayat
                 </Link>
               </div>
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-[#2B1B17]/80 bg-[#E5D3B3]/20 px-4 py-2 rounded-full border border-[#E5D3B3]/50">
+              <div className="flex items-center gap-2 rounded-full border border-[#eadbc9] bg-white/70 px-3 py-2 text-[#2B1B17]/80">
                 <User size={16} className="text-[#4A0E17]" />
                 <span className="text-sm font-medium">{tlName || "Tour Leader"}</span>
               </div>
               
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[#4A0E17] hover:bg-[#4A0E17]/10 px-4 py-2.5 rounded-full transition-colors"
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#4A0E17] transition-colors hover:bg-[#4A0E17]/10"
               >
                 <LogOut size={16} />
                 <span>Keluar</span>
@@ -75,11 +74,11 @@ export default function NavbarTL() {
         </div>
       </nav>
 
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E5D3B3]/40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] pb-safe">
-        <div className="flex justify-around items-center h-16 px-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#eadbc9] bg-white/95 shadow-[0_-12px_35px_-20px_rgba(74,14,23,.35)] backdrop-blur-xl sm:hidden">
+        <div className="flex h-[4.25rem] items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
           <Link 
             href="/tour-portal/manage" 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isDashboard ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
+            className={`flex h-full w-full flex-col items-center justify-center space-y-1 transition-colors ${isDashboard ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
           >
             <Home size={20} strokeWidth={isDashboard ? 2.5 : 2} />
             <span className="text-[9px] font-bold uppercase tracking-wider">Beranda</span>
@@ -87,7 +86,7 @@ export default function NavbarTL() {
           
           <Link 
             href="/tour-portal/manage/detail"
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isDetail ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
+            className={`flex h-full w-full flex-col items-center justify-center space-y-1 transition-colors ${isDetail ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
           >
             <ClipboardList size={20} strokeWidth={isDetail ? 2.5 : 2} />
             <span className="text-[9px] font-bold uppercase tracking-wider">Detail</span>
@@ -95,7 +94,7 @@ export default function NavbarTL() {
           
           <Link 
             href="/tour-portal/manage/history" 
-            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isHistory ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
+            className={`flex h-full w-full flex-col items-center justify-center space-y-1 transition-colors ${isHistory ? 'text-[#4A0E17]' : 'text-[#2B1B17]/40'}`}
           >
             <History size={20} strokeWidth={isHistory ? 2.5 : 2} />
             <span className="text-[9px] font-bold uppercase tracking-wider">Riwayat</span>
@@ -103,7 +102,7 @@ export default function NavbarTL() {
           
           <button 
             onClick={handleLogout}
-            className="flex flex-col items-center justify-center w-full h-full space-y-1 text-[#2B1B17]/40 hover:text-[#4A0E17] transition-colors"
+            className="flex h-full w-full flex-col items-center justify-center space-y-1 text-[#2B1B17]/40 transition-colors hover:text-[#4A0E17]"
           >
             <LogOut size={20} strokeWidth={2} />
             <span className="text-[9px] font-bold uppercase tracking-wider">Keluar</span>

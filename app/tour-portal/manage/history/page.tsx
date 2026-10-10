@@ -22,7 +22,11 @@ export default function HistoryPage() {
     try {
       const token = localStorage.getItem("tour_token");
       
-      // refactored logic: narik 50 sesi terakhir sebagai mitigasi limit data
+      if (!token) {
+        router.replace("/tour-portal");
+        return;
+      }
+
       let query = supabase
         .from("tour_sessions")
         .select(`
@@ -43,9 +47,7 @@ export default function HistoryPage() {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (token) {
-        query = query.eq("tl_id", token);
-      }
+      query = query.eq("tl_id", token);
 
       const { data, error } = await query;
 
@@ -117,7 +119,6 @@ export default function HistoryPage() {
               return (
                 <div 
                   key={session.id} 
-                  // refactored logic: navigasi ke detail saat list diklik
                   onClick={() => router.push(`/tour-portal/manage/detail/${session.id}`)}
                   className="p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-[#FDFBF7] active:bg-[#E5D3B3]/10 transition-colors group"
                 >

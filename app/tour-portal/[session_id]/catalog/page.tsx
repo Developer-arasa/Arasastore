@@ -256,9 +256,9 @@ export default function TourCatalogPage() {
                       <p className="text-sm sm:text-base md:text-lg text-[#4A0E17] font-semibold mb-1">                         
                         {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(product.price)}                       
                       </p>                       
-                      <Link href={`/tour-portal/${sessionId}/catalog/${product.id}`} className="inline-flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest text-[#2B1B17]/50 hover:text-[#4A0E17] font-bold transition-colors">                         
-                        Lihat Detail <ArrowRight size={10} className="sm:size-3" />                       
-                      </Link>                     
+                        <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] uppercase tracking-wider sm:tracking-widest text-[#2B1B17]/50 font-bold">
+                          Tersedia di katalog <ArrowRight size={10} className="sm:size-3" />
+                        </span>
                     </div>                                          
                     <button                       
                       onClick={(e) => handleQuickAdd(e, product)}                       

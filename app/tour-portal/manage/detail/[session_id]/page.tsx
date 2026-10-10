@@ -38,10 +38,17 @@ export default function SessionDetailPage() {
 
   const fetchSessionData = async () => {     
     try {       
+      const token = localStorage.getItem("tour_token");
+      if (!token) {
+        router.replace("/tour-portal");
+        return;
+      }
+
       const { data: sessionData, error: sessionError } = await supabase         
         .from("tour_sessions")         
         .select("*")         
         .eq("id", sessionId)         
+        .eq("tl_id", token)         
         .single();       
       if (sessionError) throw sessionError;       
       setSession(sessionData);       

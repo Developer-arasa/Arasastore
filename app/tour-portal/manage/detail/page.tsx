@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Playfair_Display } from "next/font/google";
 import { supabase } from "@/lib/supabase";
 import { Bus, ChevronRight, Clock } from "lucide-react";
@@ -9,6 +10,7 @@ import Link from "next/link";
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function DetailHubPage() {
+  const router = useRouter();
   const [activeSessions, setActiveSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,15 +22,18 @@ export default function DetailHubPage() {
     try {
       const token = localStorage.getItem("tour_token");
       
+      if (!token) {
+        router.replace("/tour-portal");
+        return;
+      }
+
       let query = supabase
         .from("tour_sessions")
         .select("id, group_name, eta, created_at")
         .eq("status", "active")
         .order("created_at", { ascending: false });
 
-      if (token) {
-        query = query.eq("tl_id", token);
-      }
+      query = query.eq("tl_id", token);
 
       const { data, error } = await query;
       if (error) throw error;

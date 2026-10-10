@@ -22,6 +22,7 @@ export default function CheckoutPassengerPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -57,6 +58,7 @@ export default function CheckoutPassengerPage() {
   const handleProcessOrder = async () => {
     if (cart.length === 0) return;
     setIsSubmitting(true);
+    setErrorMessage("");
 
     try {
       const { data: orderData, error: orderError } = await supabase
@@ -92,7 +94,7 @@ export default function CheckoutPassengerPage() {
 
     } catch (error) {
       console.error("Gagal memproses pesanan:", error);
-      alert("Gagal memproses pesanan. Pastikan koneksi stabil.");
+      setErrorMessage("Pesanan belum berhasil dikirim. Pastikan koneksi stabil lalu coba lagi.");
       setIsSubmitting(false);
     }
   };
@@ -100,7 +102,7 @@ export default function CheckoutPassengerPage() {
   if (!isMounted || (cart.length === 0 && !isSuccess)) return null;
 
   return (
-    <div className="bg-[#FDFBF7] min-h-screen relative pb-24">
+    <div className="min-h-screen relative bg-[#f7f1e8] pb-24">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#E5D3B3]/40 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -111,6 +113,7 @@ export default function CheckoutPassengerPage() {
           <div className="w-16"></div>
         </div>
       </div>
+      {errorMessage && <p role="alert" className="mx-auto mt-5 max-w-3xl rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{errorMessage}</p>}
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Identitas Card */}
