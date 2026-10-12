@@ -30,6 +30,7 @@ export default function TourProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+
   const { addToCart } = useCartStore();
 
   useEffect(() => {
@@ -51,10 +52,12 @@ export default function TourProductDetailPage() {
 
     const fetchProduct = async () => {
       try {
+        // refactored logic: pastikan produk tidak sedang di-hide dari tour
         const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("id", productId)
+          .eq("tour_hide", false)
           .single();
 
         if (error) throw error;

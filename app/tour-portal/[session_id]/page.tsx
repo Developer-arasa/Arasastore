@@ -8,6 +8,8 @@ import { CheckCircle2, ArrowRight, User, Bus, MapPin } from "lucide-react";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
+const BUS_NUMBERS = Array.from({ length: 15 }, (_, i) => (i + 1).toString());
+
 export default function PassengerEntryPage() {
   const params = useParams();
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function PassengerEntryPage() {
   const [loading, setLoading] = useState(true);
   
   const [name, setName] = useState("");
-  const [bus, setBus] = useState("");
+  const [bus, setBus] = useState("1"); // refactored logic: default ke bus 1
   const [seat, setSeat] = useState("");
   const [formError, setFormError] = useState("");
 
@@ -50,7 +52,11 @@ export default function PassengerEntryPage() {
       const savedBus = localStorage.getItem("arasa_bus_number");
       const savedSeat = localStorage.getItem("arasa_seat_number");
       if (savedName) setName(savedName);
-      if (savedBus) setBus(savedBus);
+      if (savedBus && BUS_NUMBERS.includes(savedBus)) {
+        setBus(savedBus);
+      } else {
+        setBus("1");
+      }
       if (savedSeat) setSeat(savedSeat);
     };
 
@@ -117,7 +123,7 @@ export default function PassengerEntryPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Bayu Agus"
-                 className="w-full rounded-2xl border border-[#eadbc9] bg-[#fcfaf7] py-3.5 pl-10 pr-4 text-sm outline-none transition focus:border-[#a96d4d] focus:ring-4 focus:ring-[#a96d4d]/10"
+                className="w-full rounded-2xl border border-[#eadbc9] bg-[#fcfaf7] py-3.5 pl-10 pr-4 text-sm outline-none transition focus:border-[#a96d4d] focus:ring-4 focus:ring-[#a96d4d]/10"
                 required
               />
               <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40" />
@@ -128,15 +134,20 @@ export default function PassengerEntryPage() {
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/50 block mb-2">Nomor Bus</label>
               <div className="relative">
-                <input 
-                  type="text" 
+                {/* refactored logic: kunci input pakai dropdown 1-15 */}
+                <select 
                   value={bus}
                   onChange={(e) => setBus(e.target.value)}
-                  placeholder="Contoh: 1"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E5D3B3] outline-none focus:border-[#4A0E17] text-sm text-[#2B1B17] bg-[#FDFBF7]/50"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E5D3B3] outline-none focus:border-[#4A0E17] text-sm text-[#2B1B17] bg-[#FDFBF7]/50 appearance-none cursor-pointer"
                   required
-                />
-                <Bus size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40" />
+                >
+                  {BUS_NUMBERS.map((num) => (
+                    <option key={num} value={num}>
+                      Bus {num}
+                    </option>
+                  ))}
+                </select>
+                <Bus size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40 pointer-events-none" />
               </div>
             </div>
             <div>

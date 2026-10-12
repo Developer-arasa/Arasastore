@@ -63,7 +63,7 @@ export default function TourCatalogPage() {
         const { data, error } = await supabase           
           .from('products')           
           .select('*')           
-          .eq('hide', false)
+          .eq('tour_hide', false)
           .order('created_at', { ascending: true });         
         
         if (data && !error) {           
