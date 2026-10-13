@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import {    
   ArrowLeft, Copy, RefreshCw, CheckCircle2,    
   Users, ShoppingBag, Send, User, ChevronRight,
-  Search, X, Trash2, Edit2, Plus, Minus, Save, UserPlus, Bus, MapPin
+  Search, X, Trash2, Edit2, Plus, Minus, Save, UserPlus, Bus, MapPin, Table, UserCheck
 } from "lucide-react"; 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -33,12 +33,20 @@ export default function SessionDetailPage() {
   const [editableItems, setEditableItems] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  // State khusus fitur TL bantu input pesanan penumpang baru
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newPassengerName, setNewPassengerName] = useState("");
   const [newBusNumber, setNewBusNumber] = useState("1");
   const [newSeatNumber, setNewSeatNumber] = useState("");
   const [newOrderItems, setNewOrderItems] = useState<any[]>([]);
+
+  const [activeTab, setActiveTab] = useState<"detail" | "matriks_flip" | "matriks_scroll">("detail");
+
+  const [matrixData, setMatrixData] = useState<{
+    productColumns: string[];
+    processedOrders: any[];
+    totals: Record<string, number>;
+  }>({ productColumns: [], processedOrders: [], totals: {} });
+
 
   useEffect(() => {     
     if (sessionId) fetchSessionData();   
@@ -80,7 +88,27 @@ export default function SessionDetailPage() {
       if (ordersError) throw ordersError;       
       setOrders(ordersData || []);     
 
-      // refactored logic: hanya tarik produk yang tidak di-hide dari katalog tour
+      if (ordersData) {
+         const itemAggregator: Record<string, number> = {};
+         const processedOrders = ordersData.map((order: any) => {
+           let orderTotal = 0;
+           const itemMap: Record<string, number> = {};
+
+           order.tour_order_items?.forEach((item: any) => {
+              if(item.qty > 0) {
+                 const name = item.products?.name || "Produk dihapus";
+                 itemAggregator[name] = (itemAggregator[name] || 0) + item.qty;
+                 itemMap[name] = (itemMap[name] || 0) + item.qty;
+                 orderTotal += (item.qty * item.price_at_checkout);
+              }
+           });
+           return { ...order, itemMap, orderTotal };
+         });
+         
+         const productColumns = Object.keys(itemAggregator).sort();
+         setMatrixData({ productColumns, processedOrders, totals: itemAggregator });
+      }
+
       const { data: prodData } = await supabase
         .from('products')
         .select('*')
@@ -132,7 +160,7 @@ export default function SessionDetailPage() {
       if (error) throw error;
 
       const agencyName = localStorage.getItem("tour_agency") || "Tidak tersedia";
-      const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Biro:* ${agencyName}%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A*Estimasi Tagihan:* Rp ${metrics.totalRevenue.toLocaleString('id-ID')}%0A%0AMohon disiapkan. Terima kasih!`;     
+      const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Biro:* ${agencyName}%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A%0AMohon disiapkan. Terima kasih!`;     
       const waUrl = `https://wa.me/628155138385?text=${text}`;      
       window.open(waUrl, '_blank');   
       
@@ -152,7 +180,6 @@ export default function SessionDetailPage() {
     return nameMatch || seatMatch;
   });
 
-  // ==================== LOGIC MODAL DETAIL & EDIT ====================
   const openModal = (order: any) => {
     setSelectedOrder(order);
     setIsEditMode(false);
@@ -233,7 +260,6 @@ export default function SessionDetailPage() {
     }
   };
 
-  // ==================== LOGIC MODAL INPUT PESANAN BARU OLEH TL ====================
   const openCreateModal = () => {
     setNewPassengerName("");
     setNewBusNumber("1");
@@ -335,7 +361,7 @@ export default function SessionDetailPage() {
   }
 
   return (     
-    <div className="w-full max-w-4xl mx-auto pb-10">       
+    <div className="w-full max-w-6xl mx-auto pb-10 px-4 sm:px-6">       
       <div className="flex items-center gap-4 mb-8">         
         <button            
           onClick={() => router.push('/tour-portal/manage')}           
@@ -357,7 +383,6 @@ export default function SessionDetailPage() {
         </div>       
       </div>       
 
-      {/* CONDITIONAL RENDER: Magic Link / Banner Selesai */}
       {session?.status === 'active' ? (
         <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl p-5 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">         
           <div>           
@@ -388,109 +413,337 @@ export default function SessionDetailPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">         
-        <div className="bg-white border border-[#E5D3B3]/60 p-4 rounded-2xl flex flex-col items-center justify-center text-center">           
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">         
+        <div className="bg-white border border-[#E5D3B3]/60 p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">           
           <Users size={20} className="text-[#E5D3B3] mb-2" />           
           <p className="text-2xl font-bold text-[#2B1B17]">{metrics.totalPassengers}</p>           
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/50 mt-1">Penumpang</span>         
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/50 mt-1">Penumpang</span>         
         </div>         
-        <div className="bg-white border border-[#E5D3B3]/60 p-4 rounded-2xl flex flex-col items-center justify-center text-center">           
+        <div className="bg-white border border-[#E5D3B3]/60 p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">           
           <ShoppingBag size={20} className="text-[#E5D3B3] mb-2" />           
           <p className="text-2xl font-bold text-[#2B1B17]">{metrics.totalItems}</p>           
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/50 mt-1">Total Item</span>         
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/50 mt-1">Total Item</span>         
         </div>         
-        <div className="bg-gradient-to-br from-[#4A0E17] to-[#691224] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-md">           
-          <p className="text-lg sm:text-xl font-bold text-[#FDFBF7] mt-2 mb-1">             
+        <div className="bg-[#4A0E17] p-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-md">           
+          <p className="text-xl font-bold text-[#FDFBF7] mt-2 mb-1">             
             {new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(metrics.totalRevenue)}           
           </p>           
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#FDFBF7]/70">Est. Tagihan</span>         
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#FDFBF7]/70">Est. Belanja</span>         
         </div>       
       </div>       
 
-      <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl overflow-hidden shadow-sm">         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 border-b border-[#E5D3B3]/40 bg-[#FDFBF7]/30 gap-4">           
-          <h2 className="text-sm font-bold uppercase tracking-widest text-[#2B1B17]">             
-            Daftar Pesanan Masuk           
-          </h2>           
-          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-56">
-              <input
-                type="text"
-                placeholder="Cari nama atau kursi..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-full border border-[#E5D3B3] outline-none focus:border-[#4A0E17] bg-white transition-colors"
-              />
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40" />
+
+
+      {/* ==================== NAVIGASI 3 SUB-TAB (A/B TESTING) ==================== */}
+     {/* ==================== NAVIGASI 3 SUB-TAB (A/B TESTING) ==================== */}
+      <div className="flex overflow-x-auto gap-2 mb-6 border-b border-[#E5D3B3]/40 pb-4 w-full" style={{ scrollbarWidth: 'none' }}>
+        <button
+          onClick={() => setActiveTab("detail")}
+          className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+            activeTab === "detail" ? "bg-[#4A0E17] text-[#FDFBF7] shadow-sm" : "bg-white text-[#2B1B17]/60 border border-[#E5D3B3] hover:text-[#4A0E17]"
+          }`}
+        >
+          <UserCheck size={15} /> Daftar Pesanan
+        </button>
+        <button
+          onClick={() => setActiveTab("matriks_flip")}
+          className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+            activeTab === "matriks_flip" ? "bg-[#4A0E17] text-[#FDFBF7] shadow-sm" : "bg-white text-[#2B1B17]/60 border border-[#E5D3B3] hover:text-[#4A0E17]"
+          }`}
+        >
+          <Table size={15} /> Rekap (card)
+        </button>
+        <button
+          onClick={() => setActiveTab("matriks_scroll")}
+          className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+            activeTab === "matriks_scroll" ? "bg-[#4A0E17] text-[#FDFBF7] shadow-sm" : "bg-white text-[#2B1B17]/60 border border-[#E5D3B3] hover:text-[#4A0E17]"
+          }`}
+        >
+          <Table size={15} /> Rekap (Scroll)
+        </button>
+      </div>
+
+      {/* ==================== TAB: MATRIKS OPSI 2 (RESPONSIVE FLIP / CARD) ==================== */}
+      {activeTab === "matriks_flip" && (
+        <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl overflow-hidden shadow-sm mb-8 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 border-b border-[#E5D3B3]/40 bg-[#FDFBF7]/30 gap-4">           
+            <div className="flex items-center gap-2">
+              <Table size={18} className="text-[#4A0E17]" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-[#2B1B17]">             
+                Matriks Pesanan (Card)
+              </h2>           
             </div>
-
-            {session?.status === 'active' && (
-              <button
-                onClick={openCreateModal}
-                className="flex items-center gap-1.5 bg-[#4A0E17] text-[#FDFBF7] hover:bg-[#2B1B17] px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm shrink-0"
-              >
-                <UserPlus size={14} />
-                <span>+ Input Pesanan</span>
-              </button>
-            )}
-
-            <button              
-              onClick={handleRefresh}             
-              disabled={refreshing}             
-              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#4A0E17] hover:bg-[#4A0E17]/10 px-3 py-2 rounded-full transition-all disabled:opacity-50 shrink-0"           
-            >             
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />             
-              <span className="hidden sm:block">{refreshing ? 'Memuat...' : 'Refresh'}</span>
-            </button>         
+            <span className="w-fit self-start sm:self-auto text-[10px] font-bold uppercase tracking-widest bg-[#00AA5B]/10 text-[#00AA5B] px-3 py-1.5 rounded-full shrink-0">
+               {matrixData.processedOrders.length} Penumpang
+            </span>
           </div>
-        </div>         
+          
+          {matrixData.processedOrders.length === 0 ? (
+             <p className="text-center text-sm text-[#2B1B17]/40 italic py-12">Belum ada pesanan masuk.</p>
+          ) : (
+            <>
+              {/* VERSI MOBILE (CARD LIST BERISI BADGE) */}
+              <div className="block sm:hidden p-4 space-y-4 bg-[#FAFAFA]">
+                {matrixData.processedOrders.map((order, idx) => (
+                  <div key={order.id} className="bg-white border border-[#E5D3B3]/60 rounded-2xl p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-3 border-b border-[#E5D3B3]/30 pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-[#2B1B17]">{idx + 1}. {order.passenger_name}</h3>
+                        <p className="text-[10px] text-[#2B1B17]/50 uppercase tracking-widest mt-0.5">
+                          Bus {order.bus_number || '1'} • Kursi {order.seat_number || '-'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-[#4A0E17]">Rp {order.orderTotal.toLocaleString('id-ID')}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {matrixData.productColumns.map((colName) => {
+                        const qty = order.itemMap?.[colName];
+                        if (!qty) return null; 
+                        return (
+                          <span key={colName} className="inline-flex items-center gap-1.5 bg-[#FDFBF7] border border-[#E5D3B3]/60 text-[#2B1B17] px-2.5 py-1.5 rounded-lg text-[10px] font-semibold">
+                            <span className="text-[#2B1B17]/70 truncate max-w-[120px]">{colName}</span>
+                            <span className="text-[#4A0E17] font-bold bg-[#E5D3B3]/30 px-1.5 py-0.5 rounded">x{qty}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="bg-[#4A0E17] p-4 mt-2 rounded-2xl flex justify-between items-center shadow-md">
+                   <span className="text-[10px] font-bold text-[#FDFBF7]/80 uppercase tracking-widest">Total Belanja</span>
+                   <span className="text-sm font-bold text-[#FDFBF7]">Rp {metrics.totalRevenue.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
 
-        <div className="divide-y divide-[#E5D3B3]/30">           
-          {filteredOrders.length === 0 ? (             
-            <div className="p-10 text-center flex flex-col items-center">               
-              <ShoppingBag size={32} className="text-[#E5D3B3] mb-3" />               
-              <p className="text-sm text-[#2B1B17]/60 font-light">Belum ada pesanan yang sesuai.</p>             
-            </div>           
-          ) : (             
-            filteredOrders.map((order) => {               
-              let totalQty = 0;               
-              let totalPrice = 0;               
-              order.tour_order_items?.forEach((item: any) => {                 
-                totalQty += item.qty;                 
-                totalPrice += (item.qty * item.price_at_checkout);               
-              });               
-              return (                 
-                <button 
-                  key={order.id} 
-                  onClick={() => openModal(order)}
-                  className="w-full p-4 sm:p-5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between group cursor-pointer text-left"
-                >                   
-                  <div className="flex items-center gap-4">                     
-                    <div className="w-10 h-10 rounded-full bg-[#E5D3B3]/20 flex items-center justify-center flex-shrink-0 text-[#4A0E17]">                       
-                      <User size={18} />                     
-                    </div>                     
-                    <div>                       
-                      <h3 className="text-sm font-bold text-[#2B1B17]">{order.passenger_name}</h3>                       
-                      <p className="text-[10px] uppercase tracking-widest text-[#2B1B17]/50 mt-0.5">                         
-                        Bus: <span className="font-bold text-[#2B1B17]/80">{order.bus_number || '1'}</span> • Kursi: <span className="font-bold text-[#2B1B17]/80">{order.seat_number || '-'}</span>                       
-                      </p>                     
+              {/* VERSI DESKTOP (TABEL MATRIKS) */}
+              <div className="hidden sm:block w-full overflow-x-auto pb-2">
+                <table className="w-full min-w-max text-left text-xs whitespace-nowrap">
+                  <thead>
+                    <tr className="border-b border-[#E5D3B3]/60">
+                      <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider w-10">No</th>
+                      <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-[140px]">Nama</th>
+                      {matrixData.productColumns.map((colName) => (
+                        <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-[120px] whitespace-normal leading-tight">
+                          {colName}
+                        </th>
+                      ))}
+                      <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-[100px]">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5D3B3]/30">
+                    {matrixData.processedOrders.map((order, idx) => (
+                      <tr key={order.id} className="hover:bg-[#FDFBF7] transition-colors">
+                        <td className="p-4 text-[#2B1B17]/70">{idx + 1}</td>
+                        <td className="p-4 font-bold text-[#2B1B17]">
+                           {order.passenger_name}
+                           <div className="text-[9px] text-[#2B1B17]/40 mt-0.5 font-normal uppercase tracking-widest">
+                             Bus {order.bus_number || '1'} • Kursi {order.seat_number || '-'}
+                           </div>
+                        </td>
+                        {matrixData.productColumns.map((colName) => {
+                          const qty = order.itemMap?.[colName];
+                          return (
+                            <td key={colName} className="p-4 text-center font-bold text-[#2B1B17]">
+                              {qty ? qty : <span className="text-[#E5D3B3]/40 font-normal">-</span>}
+                            </td>
+                          );
+                        })}
+                        <td className="p-4 text-right font-bold text-[#4A0E17]">
+                          {order.orderTotal.toLocaleString('id-ID')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-[#FDFBF7]/50 border-t-2 border-[#E5D3B3]/60">
+                    <tr>
+                       <td colSpan={2} className="p-4 font-bold text-[#2B1B17] uppercase tracking-widest text-right">
+                         Total Keseluruhan
+                       </td>
+                       {matrixData.productColumns.map((colName) => (
+                         <td key={`total-${colName}`} className="p-4 text-center font-bold text-[#2B1B17] text-sm">
+                           {matrixData.totals[colName] || 0}
+                         </td>
+                       ))}
+                       <td className="p-4 text-right font-bold text-[#4A0E17] text-sm">
+                          Rp {metrics.totalRevenue.toLocaleString('id-ID')}
+                       </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ==================== TAB: MATRIKS OPSI 1 (HORIZONTAL SCROLL) ==================== */}
+      {activeTab === "matriks_scroll" && (
+        <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl overflow-hidden shadow-sm mb-8 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 border-b border-[#E5D3B3]/40 bg-[#FDFBF7]/30 gap-4">           
+            <div className="flex items-center gap-2">
+              <Table size={18} className="text-[#4A0E17]" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-[#2B1B17]">             
+                Matriks Pesanan (Scroll)
+              </h2>           
+            </div>
+            <span className="w-fit self-start sm:self-auto text-[10px] font-bold uppercase tracking-widest bg-[#00AA5B]/10 text-[#00AA5B] px-3 py-1.5 rounded-full shrink-0">
+               {matrixData.processedOrders.length} Penumpang
+            </span>
+          </div>
+          
+          {matrixData.processedOrders.length === 0 ? (
+             <p className="text-center text-sm text-[#2B1B17]/40 italic py-12">Belum ada pesanan masuk.</p>
+          ) : (
+            <div className="w-full overflow-x-auto pb-2">
+              {/* Visual hint khusus mobile biar sadar bisa digeser */}
+              <div className="text-right sm:hidden px-4 pt-2 text-[10px] font-bold uppercase tracking-widest text-[#2B1B17]/40">
+                Geser ke kanan ➔
+              </div>
+              <table className="w-full min-w-max text-left text-xs whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-[#E5D3B3]/60">
+                    <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider w-10">No</th>
+                    <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-[140px]">Nama</th>
+                    {matrixData.productColumns.map((colName) => (
+                      <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-[120px] whitespace-normal leading-tight">
+                        {colName}
+                      </th>
+                    ))}
+                    <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-[100px]">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5D3B3]/30">
+                  {matrixData.processedOrders.map((order, idx) => (
+                    <tr key={order.id} className="hover:bg-[#FDFBF7] transition-colors">
+                      <td className="p-4 text-[#2B1B17]/70">{idx + 1}</td>
+                      <td className="p-4 font-bold text-[#2B1B17]">
+                         {order.passenger_name}
+                         <div className="text-[9px] text-[#2B1B17]/40 mt-0.5 font-normal uppercase tracking-widest">
+                           Bus {order.bus_number || '1'} • Kursi {order.seat_number || '-'}
+                         </div>
+                      </td>
+                      {matrixData.productColumns.map((colName) => {
+                        const qty = order.itemMap?.[colName];
+                        return (
+                          <td key={colName} className="p-4 text-center font-bold text-[#2B1B17]">
+                            {qty ? qty : <span className="text-[#E5D3B3]/40 font-normal">-</span>}
+                          </td>
+                        );
+                      })}
+                      <td className="p-4 text-right font-bold text-[#4A0E17]">
+                        {order.orderTotal.toLocaleString('id-ID')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-[#FDFBF7]/50 border-t-2 border-[#E5D3B3]/60">
+                  <tr>
+                     <td colSpan={2} className="p-4 font-bold text-[#2B1B17] uppercase tracking-widest text-right">
+                       Total Keseluruhan
+                     </td>
+                     {matrixData.productColumns.map((colName) => (
+                       <td key={`total-${colName}`} className="p-4 text-center font-bold text-[#2B1B17] text-sm">
+                         {matrixData.totals[colName] || 0}
+                       </td>
+                     ))}
+                     <td className="p-4 text-right font-bold text-[#4A0E17] text-sm">
+                        Rp {metrics.totalRevenue.toLocaleString('id-ID')}
+                     </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "detail" && (
+        <div className="bg-white border border-[#E5D3B3]/60 rounded-3xl overflow-hidden shadow-sm">         
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 border-b border-[#E5D3B3]/40 bg-[#FDFBF7]/30 gap-4">           
+            <h2 className="text-sm font-bold uppercase tracking-widest text-[#2B1B17]">             
+              Kelola Pesanan           </h2>           
+            <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-56">
+                <input
+                  type="text"
+                  placeholder="Cari nama atau kursi..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs rounded-full border border-[#E5D3B3] outline-none focus:border-[#4A0E17] bg-white transition-colors"
+                />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#2B1B17]/40" />
+              </div>
+
+              {session?.status === 'active' && (
+                <button
+                  onClick={openCreateModal}
+                  className="flex items-center gap-1.5 bg-[#4A0E17] text-[#FDFBF7] hover:bg-[#2B1B17] px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm shrink-0"
+                >
+                  <UserPlus size={14} />
+                  <span className="hidden sm:block">Input Pesanan</span>
+                </button>
+              )}
+
+              <button              
+                onClick={handleRefresh}             
+                disabled={refreshing}             
+                className="flex items-center justify-center text-[10px] font-bold text-[#4A0E17] hover:bg-[#4A0E17]/10 w-8 h-8 rounded-full transition-all disabled:opacity-50 shrink-0"           
+              >             
+                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />             
+              </button>         
+            </div>
+          </div>         
+
+          <div className="divide-y divide-[#E5D3B3]/30">           
+            {filteredOrders.length === 0 ? (             
+              <div className="p-10 text-center flex flex-col items-center">               
+                <ShoppingBag size={32} className="text-[#E5D3B3] mb-3" />               
+                <p className="text-sm text-[#2B1B17]/60 font-light">Belum ada pesanan yang sesuai.</p>             
+              </div>           
+            ) : (             
+              filteredOrders.map((order) => {               
+                let totalQty = 0;               
+                let totalPrice = 0;               
+                order.tour_order_items?.forEach((item: any) => {                 
+                  totalQty += item.qty;                 
+                  totalPrice += (item.qty * item.price_at_checkout);               
+                });               
+                return (                 
+                  <button 
+                    key={order.id} 
+                    onClick={() => openModal(order)}
+                    className="w-full p-4 sm:p-5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between group cursor-pointer text-left"
+                  >                   
+                    <div className="flex items-center gap-4">                     
+                      <div className="w-10 h-10 rounded-full bg-[#E5D3B3]/20 flex items-center justify-center flex-shrink-0 text-[#4A0E17]">                       
+                        <User size={18} />                     
+                      </div>                     
+                      <div>                       
+                        <h3 className="text-sm font-bold text-[#2B1B17]">{order.passenger_name}</h3>                       
+                        <p className="text-[10px] uppercase tracking-widest text-[#2B1B17]/50 mt-0.5">                         
+                          Bus: <span className="font-bold text-[#2B1B17]/80">{order.bus_number || '1'}</span> • Kursi: <span className="font-bold text-[#2B1B17]/80">{order.seat_number || '-'}</span>                       
+                        </p>                     
+                      </div>                   
                     </div>                   
-                  </div>                   
-                  <div className="text-right flex items-center gap-3">                     
-                    <div className="text-right">                       
-                      <p className="text-xs font-bold text-[#4A0E17]">Rp {totalPrice.toLocaleString('id-ID')}</p>                       
-                      <p className="text-[10px] text-[#2B1B17]/50">{totalQty} item</p>                     
-                    </div>                     
-                    <div className="hidden sm:block p-2 text-[#E5D3B3] group-hover:text-[#4A0E17] transition-colors">                       
-                      <ChevronRight size={18} />                     
-                    </div>                   
-                  </div>                 
-                </button>               
-              );             
-            })           
-          )}         
-        </div>       
-      </div>       
+                    <div className="text-right flex items-center gap-3">                     
+                      <div className="text-right">                       
+                        <p className="text-xs font-bold text-[#4A0E17]">Rp {totalPrice.toLocaleString('id-ID')}</p>                       
+                        <p className="text-[10px] text-[#2B1B17]/50">{totalQty} item</p>                     
+                      </div>                     
+                      <div className="hidden sm:block p-2 text-[#E5D3B3] group-hover:text-[#4A0E17] transition-colors">                       
+                        <ChevronRight size={18} />                     
+                      </div>                   
+                    </div>                 
+                  </button>               
+                );             
+              })           
+            )}         
+          </div>       
+        </div>
+      )}
 
       <div className="mt-8 flex justify-end">         
         <button            
@@ -503,7 +756,6 @@ export default function SessionDetailPage() {
         </button>       
       </div>     
 
-      {/* ==================== MODAL 1: DETAIL & EDIT PESANAN EXISTING ==================== */}
       <AnimatePresence>
         {selectedOrder && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2B1B17]/60 backdrop-blur-sm">
@@ -616,7 +868,6 @@ export default function SessionDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* ==================== MODAL 2: TL BANTU INPUT PESANAN PENUMPANG BARU ==================== */}
       <AnimatePresence>
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2B1B17]/60 backdrop-blur-sm">
