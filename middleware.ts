@@ -5,9 +5,17 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
 
-  if (hostname.startsWith('tour.')) {
+  const isTourSubdomain = hostname.startsWith('tour.');
+
+  if (isTourSubdomain) {
     url.pathname = `/tour-portal${url.pathname}`;
     return NextResponse.rewrite(url);
+  }
+
+  if (url.pathname.startsWith('/tour-portal')) {
+    const newPath = url.pathname.replace('/tour-portal', '');
+    const redirectUrl = new URL(`https://tour.arasa.co.id${newPath}`, request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return NextResponse.next();
