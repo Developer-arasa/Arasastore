@@ -162,7 +162,25 @@ export default function SessionDetailPage() {
       const agencyName = localStorage.getItem("tour_agency") || "Tidak tersedia";
       const text = `Halo Admin Arasa,%0A%0ASaya ingin konfirmasi pesanan rombongan B2B:%0A*Nama Biro:* ${agencyName}%0A*Nama Rombongan:* ${session?.group_name || 'Rombongan'}%0A*ID Sesi:* ${sessionId.substring(0,8)}%0A%0A*Total Penumpang:* ${metrics.totalPassengers} orang%0A*Total Produk:* ${metrics.totalItems} item%0A%0AMohon disiapkan. Terima kasih!`;     
       const waUrl = `https://wa.me/628155138385?text=${text}`;      
-      window.open(waUrl, '_blank');   
+      window.open(waUrl, '_blank');
+
+      // Kirim rekap pesanan (group by produk) ke grup WhatsApp via Fonnte
+      const productsText = matrixData.productColumns
+        .map((name) => `• ${name}: ${matrixData.totals[name]} item`)
+        .join("\n");
+
+      fetch("/api/send-whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "finalize_order",
+          agency: agencyName,
+          groupName: session?.group_name || "Rombongan",
+          sessionId,
+          totalPassengers: metrics.totalPassengers,
+          productsText,
+        }),
+      }).catch(() => {});
       
       fetchSessionData();
     } catch (error) {
@@ -395,7 +413,7 @@ export default function SessionDetailPage() {
           </div>         
           <button            
             onClick={copyMagicLink}           
-            className={`flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md ${             
+            className={`shrink-0 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-bold uppercase tracking-widest transition-all shadow-md ${             
               isCopied ? 'bg-[#00AA5B] text-white border-transparent' : 'bg-[#4A0E17] text-[#FDFBF7] hover:bg-[#2B1B17]'           
             }`}         
           >           
@@ -503,7 +521,7 @@ export default function SessionDetailPage() {
                         if (!qty) return null; 
                         return (
                           <span key={colName} className="inline-flex items-center gap-1.5 bg-[#FDFBF7] border border-[#E5D3B3]/60 text-[#2B1B17] px-2.5 py-1.5 rounded-lg text-[10px] font-semibold">
-                            <span className="text-[#2B1B17]/70 truncate max-w-[120px]">{colName}</span>
+                            <span className="text-[#2B1B17]/70 truncate max-w-30">{colName}</span>
                             <span className="text-[#4A0E17] font-bold bg-[#E5D3B3]/30 px-1.5 py-0.5 rounded">x{qty}</span>
                           </span>
                         );
@@ -524,13 +542,13 @@ export default function SessionDetailPage() {
                   <thead>
                     <tr className="border-b border-[#E5D3B3]/60">
                       <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider w-10">No</th>
-                      <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-[140px]">Nama</th>
+                      <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-35">Nama</th>
                       {matrixData.productColumns.map((colName) => (
-                        <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-[120px] whitespace-normal leading-tight">
+                        <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-30 whitespace-normal leading-tight">
                           {colName}
                         </th>
                       ))}
-                      <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-[100px]">Total</th>
+                      <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-25">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5D3B3]/30">
@@ -606,13 +624,13 @@ export default function SessionDetailPage() {
                 <thead>
                   <tr className="border-b border-[#E5D3B3]/60">
                     <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider w-10">No</th>
-                    <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-[140px]">Nama</th>
+                    <th className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider min-w-35">Nama</th>
                     {matrixData.productColumns.map((colName) => (
-                      <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-[120px] whitespace-normal leading-tight">
+                      <th key={colName} className="p-4 font-bold text-[#2B1B17]/60 uppercase tracking-wider text-center max-w-30 whitespace-normal leading-tight">
                         {colName}
                       </th>
                     ))}
-                    <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-[100px]">Total</th>
+                    <th className="p-4 font-bold text-[#4A0E17] uppercase tracking-wider text-right min-w-25">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5D3B3]/30">
@@ -718,7 +736,7 @@ export default function SessionDetailPage() {
                     className="w-full p-4 sm:p-5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between group cursor-pointer text-left"
                   >                   
                     <div className="flex items-center gap-4">                     
-                      <div className="w-10 h-10 rounded-full bg-[#E5D3B3]/20 flex items-center justify-center flex-shrink-0 text-[#4A0E17]">                       
+                      <div className="w-10 h-10 rounded-full bg-[#E5D3B3]/20 flex items-center justify-center shrink-0 text-[#4A0E17]">                       
                         <User size={18} />                     
                       </div>                     
                       <div>                       

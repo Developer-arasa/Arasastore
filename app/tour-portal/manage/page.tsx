@@ -126,6 +126,18 @@ export default function DashboardTLPage() {
 
       if (error) throw error;
       
+      // Kirim notifikasi WhatsApp ke grup bahwa sesi baru dibuat
+      fetch("/api/send-whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "new_session",
+          agency: travelAgent,
+          groupName: groupName.trim(),
+          sessionId: data.id,
+        }),
+      }).catch(() => {});
+
       setGroupName("");
       setIsModalOpen(false); // Tutup modal
       fetchDashboardData(token); // Refresh data beranda
@@ -162,7 +174,7 @@ export default function DashboardTLPage() {
 
       {!loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-10">
-          <div className="bg-gradient-to-br from-[#4A0E17] to-[#691224] p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md text-[#FDFBF7] flex flex-col justify-between">
+          <div className="bg-linear-to-br from-[#4A0E17] to-[#691224] p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-md text-[#FDFBF7] flex flex-col justify-between">
             <div className="flex items-center gap-2 mb-4 opacity-80">
               <Activity size={16} />
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Sesi Aktif</span>
@@ -229,7 +241,7 @@ export default function DashboardTLPage() {
                     ID: {session.id.substring(0, 8)}
                   </p>
 
-                  <div className="text-xs text-[#2B1B17]/60 font-light mb-5 flex-grow space-y-1">
+                  <div className="text-xs text-[#2B1B17]/60 font-light mb-5 grow space-y-1">
                     <p>{new Date(session.created_at).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     <p className="font-medium text-[#4A0E17]">{orderCount} Penumpang Order</p>
                   </div>
@@ -247,7 +259,7 @@ export default function DashboardTLPage() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#2B1B17]/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-[#2B1B17]/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center p-6 border-b border-[#E5D3B3]/40">
               <h2 className={`${playfair.className} text-2xl font-bold text-[#2B1B17]`}>Sesi Baru</h2>
