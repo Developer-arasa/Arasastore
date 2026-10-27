@@ -105,7 +105,7 @@ export default function PassengerEntryPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f1e8] flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_24px_80px_-32px_rgba(74,14,23,.4)] border border-[#eadbc9] overflow-hidden">
+      <div className="bg-white w-full max-w-md rounded-4xl shadow-[0_24px_80px_-32px_rgba(74,14,23,.4)] border border-[#eadbc9] overflow-hidden">
         <div className="bg-[#4A0E17] p-7 sm:p-9 text-left relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <h1 className={`${playfair.className} text-2xl font-bold text-[#FDFBF7] relative z-10`}>

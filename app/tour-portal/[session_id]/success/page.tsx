@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -13,7 +13,11 @@ const playfair = Playfair_Display({ subsets: ["latin"] });
 export default function PassengerSuccessPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.session_id as string;
+  const sessionId =
+    (params.session_id as string) ||
+    (typeof window !== 'undefined'
+      ? window.location.pathname.split('/tour-portal/')[1]?.split('/')[0] || ''
+      : '');
 
   const { addToCart, clearCart } = useCartStore();
   

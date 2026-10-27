@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -22,8 +22,16 @@ type Product = {
 export default function TourProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.session_id as string;
-  const productId = params.id as string;
+  const sessionId =
+    (params.session_id as string) ||
+    (typeof window !== 'undefined'
+      ? window.location.pathname.split('/tour-portal/')[1]?.split('/')[0] || ''
+      : '');
+  const productId =
+    (params.id as string) ||
+    (typeof window !== 'undefined'
+      ? window.location.pathname.split('/').filter(Boolean).pop() || ''
+      : '');
 
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
